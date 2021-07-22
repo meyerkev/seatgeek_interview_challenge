@@ -8,3 +8,4 @@ venv_dir=venv/
 python -m venv ${venv_dir?} 
 source ${venv_dir}/bin/activate
 pip install -r requirements.txt
+pip install -r dev_requirements.txt
