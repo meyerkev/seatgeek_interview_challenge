@@ -1,4 +1,4 @@
-#/bin/sh
+#/bin/bash
 
 # Make this reasonably agnostic about where it's called from
 cd $(dirname $(dirname $0))
