@@ -10,6 +10,7 @@ import backend
 LISTEN_PORT = 8099
 ENCODING = 'utf-8'
 
+
 class SocketLineReader:
     def __init__(self, socket):
         self.socket = socket
@@ -38,14 +39,16 @@ class SocketLineReader:
 def start_server(socket):
     # A fancy way of saying print()
     # TODO: Log to real files
-    logging.basicConfig(level=logging.DEBUG,
-                        handlers=[logging.StreamHandler()])
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 7200)
+    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60)
+    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 30)
     # Sadly required to force-flush tiny messages like these
     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    sock.bind(('', LISTEN_PORT))
+    sock.bind(('0.0.0.0', LISTEN_PORT))
     sock.listen(0)
 
     def handle(conn):
@@ -62,7 +65,6 @@ def start_server(socket):
             # The test server won't notice messages until you send a \n
             send_bytes = status.encode(ENCODING) + b'\n'
             conn.send(send_bytes)
-            logging.debug(send_bytes)
 
         conn.close()
 
