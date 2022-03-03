@@ -45,9 +45,6 @@ def start_server():
     sock = socket.socket()
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 7200)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 30)
     # Sadly required to force-flush tiny messages like these
     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     sock.bind(('0.0.0.0', LISTEN_PORT))
