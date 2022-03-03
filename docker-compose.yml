@@ -7,14 +7,3 @@ services:
       - 8099:8099
     networks:
       - default
-    # So I was having some problems with Docker shutting my TCP connections
-    # And copied my desktop settings
-    sysctls:
-      - net.ipv4.tcp_keepalive_time=7200
-      - net.ipv4.tcp_keepalive_intvl=75
-      - net.ipv4.tcp_keepalive_probes=60
-
-    ulimits:
-      nofile:
-        soft: 1048576
-        hard: 1048576

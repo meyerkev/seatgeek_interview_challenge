@@ -5,7 +5,7 @@ RUN apt-get update \
     && apt-get install apt-utils \
     && apt-get upgrade -y
 
-RUN apt-get install -y python3 python-is-python3
+RUN apt-get install -y python3 python-is-python3 dumb-init
 
 # Set the working directory.
 WORKDIR /usr/src/app
@@ -22,6 +22,8 @@ COPY test/ test/
 
 # Add metadata to the image to describe which port the container is listening on at runtime.
 EXPOSE 8099
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Run the specified command within the container.
 CMD [ "python", "src/server.py" ]
