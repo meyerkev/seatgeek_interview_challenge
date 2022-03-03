@@ -1,9 +1,9 @@
+SHELL = /bin/bash
+
 venv: venv/touchfile
 
 venv/touchfile: dev_requirements.txt
-	pushd .
 	test -d venv || bin/venv.sh
-	popd
 	touch venv/touchfile
 fix : venv
 	. venv/bin/activate
@@ -34,6 +34,8 @@ sh: FORCE
 reset: down up
 test: reset
 	test/seatgeek-be-challenge-linux-amd64
+unit-test:
+	pytest src/
 local: FORCE
 	python src/server.py
     

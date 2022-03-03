@@ -41,6 +41,10 @@ class Seat():
         self._lock = threading.Lock()
 
     @property
+    def seat_id(self):
+        return self._seat_id
+
+    @property
     def status(self):
         with self._lock:
             return self._status
@@ -74,6 +78,7 @@ class Seat():
 # This would literally be a DB, so I don't feel awkward about it being a global
 # Alt. would be singleton, especially if we use non-seat-level locking
 SEAT_DB = {}
+VALID_ACTIONS = ["QUERY", "RESERVE", "BUY"]
 
 
 def take_action(action, seat_id):
@@ -96,6 +101,10 @@ def take_action(action, seat_id):
     * The service should return FAIL for any unknown or invalid message it
       receives
     """
+    if not action in VALID_ACTIONS:
+        logging.info("Invalid action %s", action)
+        return ReturnStatus.FAIL
+
     # Possible TODO: Can we do something interesting with
     # collections.defaultdict constructors?
     seat = SEAT_DB.get(seat_id)
@@ -111,7 +120,8 @@ def take_action(action, seat_id):
     elif action == "BUY":
         return seat.buy()
 
-    logging.info("Invalid action %s", action)
+    # You should never get here
+    logging.warning("Valid Action %s was reported as invalid", action)
     return ReturnStatus.FAIL
 
 
