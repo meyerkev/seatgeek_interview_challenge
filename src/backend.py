@@ -6,6 +6,8 @@ import logging
 import threading
 
 # CR: Should these be merged?
+
+
 class SeatStatus(Enum):
     """
     For QUERY commands, the service should return:
@@ -17,9 +19,11 @@ class SeatStatus(Enum):
     RESERVED = 2
     SOLD = 3
 
+
 class ReturnStatus(Enum):
     OK = 4
     FAIL = 5
+
 
 class Seat():
     def __init__(self, seat_id, status):
@@ -64,6 +68,7 @@ class Seat():
 # Alt. would be singleton, especially if we use non-seat-level locking
 SEAT_DB = {}
 
+
 def take_action(action, seat_id):
     """
     Returns a status
@@ -75,7 +80,7 @@ def take_action(action, seat_id):
     * For QUERY commands, the service should return FREE if the queried seat hasn't been previously reserved or bought, RESERVED if the seat has been reserved but not yet bought, and SOLD when the seat has already been bought
     * The service should return FAIL for any unknown or invalid message it receives
     """
-    # Possible TODO: Can we do something interesting with 
+    # Possible TODO: Can we do something interesting with
     # collections.defaultdict constructors?
     seat = SEAT_DB.get(seat_id)
     if seat is None:
@@ -87,22 +92,19 @@ def take_action(action, seat_id):
         return seat.status
     elif action == "RESERVE":
         return seat.reserve()
-    elif action == "BUY": 
+    elif action == "BUY":
         return seat.buy()
-    
-    logging.info(f"Invalid action {action}")
+
     return ReturnStatus.FAIL
 
 
 def process_message(message):
     # This could be done with regex, but let's just run a split
     # Input string is ACTION: seat\n
-    logging.debug(f"Message: {message}")
     try:
         action, seat = message.split(": ")
-        seat_id = seat.strip()
+        seat = seat.strip()
     except ValueError:  # No : , so list is of len 1 and cannot be split
-        logging.info(f"Message {message} could not be parsed")
         return ReturnStatus.FAIL.name
 
     return take_action(action, seat).name

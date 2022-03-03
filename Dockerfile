@@ -14,6 +14,9 @@ WORKDIR /usr/src/app
 # Copy the rest of your app's source code from your host to your image filesystem.
 COPY src/ src/
 
+# Debugging
+COPY test/ test/
+
 # We have no Python dependencies as per request
 # Normally, install requirements.txt
 
