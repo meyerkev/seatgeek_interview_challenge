@@ -5,7 +5,6 @@ cd $(dirname $(dirname $0))
 venv_dir=venv/
 
 # Turn up and configure the virtualenv
-python -m venv ${venv_dir?} 
-source ${venv_dir}/bin/activate
-pip install -r requirements.txt
+python3 -m venv ${venv_dir?} 
+source ${venv_dir?}/bin/activate
 pip install -r dev_requirements.txt
