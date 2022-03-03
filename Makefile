@@ -19,6 +19,10 @@ docker-pull: FORCE
 	docker pull ubuntu:latest
 docker-build: FORCE
 	docker build --no-cache -t meyerkev-seatgeek-interview .
+down: FORCE
+	docker-compose -f docker-compose.yml -p \
+	    meyerkev-seatgeek-interview stop \
+		meyerkev-seatgeek-interview
 up: FORCE
 	docker-compose -f docker-compose.yml -p \
 		meyerkev-seatgeek-interview up -d --no-build \
@@ -27,11 +31,8 @@ sh: FORCE
 	docker-compose -f docker-compose.yml -p \
 		meyerkev-seatgeek-interview run --rm --service-ports \
 		meyerkev-seatgeek-interview /bin/bash
-down: FORCE
-	docker-compose -f docker-compose.yml -p \
-	    meyerkev-seatgeek-interview stop \
-		meyerkev-seatgeek-interview
-test: FORCE
+reset: down up
+test: reset
 	test/seatgeek-be-challenge-linux-amd64
 local: FORCE
 	python src/server.py
