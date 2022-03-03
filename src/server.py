@@ -36,6 +36,11 @@ class SocketLineReader:
 
 
 def start_server(socket):
+    # A fancy way of saying print()
+    # TODO: Log to real files
+    logging.basicConfig(level=logging.DEBUG,
+                        handlers=[logging.StreamHandler()])
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # Sadly required to force-flush tiny messages like these
@@ -66,6 +71,7 @@ def start_server(socket):
             conn, addr = sock.accept()
             threading.Thread(target=handle, args=(conn,)).start()
     except KeyboardInterrupt:
+        # clean shutdown w/o output
         pass
 
 
