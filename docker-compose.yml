@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  meyerkev-seatgeek-interview:
+    image: meyerkev-seatgeek-interview:latest
+    ports:
+      - 8099:8099
