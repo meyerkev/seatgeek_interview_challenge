@@ -3,8 +3,6 @@ import logging
 import socket
 import threading
 
-from time import sleep
-
 import backend
 
 LISTEN_PORT = 8099
@@ -12,8 +10,10 @@ ENCODING = 'utf-8'
 
 
 class SocketLineReader:
-    def __init__(self, socket):
-        self.socket = socket
+    """Convert bytes to lines."""
+
+    def __init__(self, socket_):
+        self.socket = socket_
         self._buffer = b''
 
     def readline(self):
@@ -36,9 +36,11 @@ class SocketLineReader:
                 return data
 
 
-def start_server(socket):
+def start_server():
     # A fancy way of saying print()
     # TODO: Log to real files
+    logging.basicConfig(level=logging.INFO,
+                        handlers=[logging.StreamHandler()])
 
     sock = socket.socket()
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -49,10 +51,10 @@ def start_server(socket):
     # Sadly required to force-flush tiny messages like these
     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     sock.bind(('0.0.0.0', LISTEN_PORT))
-    sock.listen(0)
+    sock.listen(1)
 
     def handle(conn):
-        logging.info('connected:', addr)
+        logging.info('connected: %s', addr)
 
         reader = SocketLineReader(conn)
         while True:
@@ -78,4 +80,4 @@ def start_server(socket):
 
 
 if __name__ == "__main__":
-    start_server(socket=socket)
+    start_server()
