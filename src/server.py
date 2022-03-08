@@ -10,7 +10,11 @@ ENCODING = 'utf-8'
 
 
 class SocketLineReader:
-    """Convert bytes to lines."""
+    """
+    Convert bytes to lines.
+
+    Stolen from https://stackoverflow.com/questions/41482989/socket-in-python3-listening-port
+    """
 
     def __init__(self, socket_):
         self.socket = socket_
