@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import logging
-import socket
+import socketserver
 import threading
 
 import backend
@@ -14,8 +14,7 @@ class SocketLineReader:
     Convert bytes to lines.
 
     Stolen from https://stackoverflow.com/questions/41482989/socket-in-python3-listening-port
-    """
-
+    """  # pylint:disable=line-too-long
     def __init__(self, socket_):
         self.socket = socket_
         self._buffer = b''
@@ -40,47 +39,58 @@ class SocketLineReader:
                 return data
 
 
+class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+    """
+    Our handler to read lines from the recv call
+    """
+
+    def handle(self):
+        logging.info("Connection opened")
+        reader = SocketLineReader(self.request)
+        try:
+            while True:
+                data = reader.readline()
+                if not data:
+                    break
+                message = data.decode(ENCODING)
+                status = backend.process_message(message)
+                # Do not forget this \n.
+                # The test server won't notice messages until you send a \n
+                send_bytes = status.encode(ENCODING) + b'\n'
+                self.request.sendall(send_bytes)
+        except ConnectionResetError:
+            logging.info("Connection closed")
+
+
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    """A Threaded TCPServer that can handle multiple requests."""
+    allow_reuse_address = True
+
+
 def start_server():
     # A fancy way of saying print()
     # TODO: Log to real files
     logging.basicConfig(level=logging.INFO,
                         handlers=[logging.StreamHandler()])
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 7200)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60)
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 30)
-    # Sadly required to force-flush tiny messages like these
-    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    sock.bind(('0.0.0.0', LISTEN_PORT))
-    sock.listen(1)
+    # Docker servers need to run as 0.0.0.0
+    server = ThreadedTCPServer(("0.0.0.0", LISTEN_PORT),
+                               ThreadedTCPRequestHandler)
+    with server:
+        ip, port = server.server_address
 
-    def handle(conn):
-        logging.info('connected: %s', addr)
+        logging.info("Starting server on %s:%s", ip, port)
+        # Start a thread with the server -- that thread will then start one
+        # more thread for each request
+        server_thread = threading.Thread(target=server.serve_forever)
+        # Exit the server thread when the main thread terminates
+        server_thread.daemon = True
+        server_thread.start()
 
-        reader = SocketLineReader(conn)
-        while True:
-            data = reader.readline()
-            if not data:
-                break
-            message = data.decode(ENCODING)
-            status = backend.process_message(message)
-            # Do not forget this \n.
-            # The test server won't notice messages until you send a \n
-            send_bytes = status.encode(ENCODING) + b'\n'
-            conn.send(send_bytes)
-
-        conn.close()
-
-    try:
-        while True:
-            conn, addr = sock.accept()
-            threading.Thread(target=handle, args=(conn,)).start()
-    except KeyboardInterrupt:
-        # clean shutdown w/o output
-        pass
+        try:
+            server_thread.join()
+        except KeyboardInterrupt:
+            pass
 
 
 if __name__ == "__main__":
