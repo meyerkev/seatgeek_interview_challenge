@@ -78,6 +78,7 @@ class Seat():
 # This would literally be a DB, so I don't feel awkward about it being a global
 # Alt. would be singleton, especially if we use non-seat-level locking
 SEAT_DB = {}
+SEAT_DB_LOCK = threading.Lock()
 VALID_ACTIONS = ["QUERY", "RESERVE", "BUY"]
 
 
@@ -107,10 +108,11 @@ def take_action(action, seat_id):
 
     # Possible TODO: Can we do something interesting with
     # collections.defaultdict constructors?
-    seat = SEAT_DB.get(seat_id)
-    if seat is None:
-        seat = Seat(seat_id, SeatStatus.FREE)
-        SEAT_DB[seat_id] = seat
+    with SEAT_DB_LOCK:
+        seat = SEAT_DB.get(seat_id)
+        if seat is None:
+            seat = Seat(seat_id, SeatStatus.FREE)
+            SEAT_DB[seat_id] = seat
 
     if action == "QUERY":  # pylint: disable=R1705
         # SELECT status FROM seats WHERE seat_id==<seat_id>

@@ -18,6 +18,8 @@ clean:
 docker-pull: FORCE
 	docker pull ubuntu:latest
 docker-build: FORCE
+	docker build -t meyerkev-seatgeek-interview .
+docker-build-clean: FORCE
 	docker build --no-cache -t meyerkev-seatgeek-interview .
 down: FORCE
 	docker-compose -f docker-compose.yml -p \
