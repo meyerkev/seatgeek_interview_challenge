@@ -5,12 +5,12 @@ venv: venv/touchfile
 venv/touchfile: dev_requirements.txt
 	test -d venv || bin/venv.sh
 	touch venv/touchfile
-fix : venv
+fix: venv
 	. venv/bin/activate
 	autopep8 --in-place src/*.py
 	make lint
-lint : venv
-	. ./venv/bin/activate
+lint: venv
+	. ./venv/bin/activate && \
 	pylint src/
 clean:
 	rm -rf venv
@@ -35,11 +35,11 @@ sh: FORCE
 		meyerkev-seatgeek-interview /bin/bash
 reset: down up
 test: reset
-	test/seatgeek-be-challenge-linux-amd64
+	spec/seatgeek-be-challenge-darwin-amd64
 unit-test:
 	pytest src/
 local: FORCE
-	python src/server.py
+	python3 src/server.py
     
 # ref: http://www.gnu.org/software/make/manual/html_node/Force-Targets.html#Force-Targets
 FORCE:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import logging
 import socketserver
 import threading
@@ -15,6 +16,7 @@ class SocketLineReader:
 
     Stolen from https://stackoverflow.com/questions/41482989/socket-in-python3-listening-port
     """  # pylint:disable=line-too-long
+
     def __init__(self, socket_):
         self.socket = socket_
         self._buffer = b''
@@ -52,8 +54,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 data = reader.readline()
                 if not data:
                     break
-                message = data.decode(ENCODING)
+                message = data.decode(ENCODING).strip()
+                logging.debug("Message recieved: %s", message)
                 status = backend.process_message(message)
+                logging.debug(
+                    "Status to return in response to %s: %s", message, status)
                 # Do not forget this \n.
                 # The test server won't notice messages until you send a \n
                 send_bytes = status.encode(ENCODING) + b'\n'
@@ -67,18 +72,24 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
 
 
-def start_server():
-    # A fancy way of saying print()
-    # TODO: Log to real files
-    logging.basicConfig(level=logging.INFO,
-                        handlers=[logging.StreamHandler()])
+def parse_args():
+    # This is a neat trick!
+    # https://gist.github.com/ms5/9f6df9c42a5f5435be0e
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--verbose', '-v', action='count', default=0)
+    args = parser.parse_args()
 
+    # As of Python 3.9.12, Critical is 50 and every level below it is -10
+    args.verbose = 60 - (10 * args.verbose)
+    return args
+
+
+def start_server():
     # Docker servers need to run as 0.0.0.0
     server = ThreadedTCPServer(("0.0.0.0", LISTEN_PORT),
                                ThreadedTCPRequestHandler)
     with server:
         ip, port = server.server_address
-
         logging.info("Starting server on %s:%s", ip, port)
         # Start a thread with the server -- that thread will then start one
         # more thread for each request
@@ -93,5 +104,16 @@ def start_server():
             pass
 
 
-if __name__ == "__main__":
+def main():
+    # Setup the logger
+    # A fancy way of saying print()
+    # TODO: Log to real files
+    args = parse_args()
+    logging.basicConfig(level=args.verbose,
+                        handlers=[logging.StreamHandler()])
+
     start_server()
+
+
+if __name__ == "__main__":
+    main()

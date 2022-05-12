@@ -108,9 +108,13 @@ def take_action(action, seat_id):
 
     # Possible TODO: Can we do something interesting with
     # collections.defaultdict constructors?
-    with SEAT_DB_LOCK:
-        seat = SEAT_DB.get(seat_id)
-        if seat is None:
+    seat = SEAT_DB.get(seat_id)
+    if seat is None:
+        # Seat does not exist, return default
+        if action == "QUERY":
+            return SeatStatus.FREE
+
+        with SEAT_DB_LOCK:
             seat = Seat(seat_id, SeatStatus.FREE)
             SEAT_DB[seat_id] = seat
 
